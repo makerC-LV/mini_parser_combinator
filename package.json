@@ -1,0 +1,28 @@
+{
+  "name": "mini_parser_combinator",
+  "version": "1.0.0",
+  "description": "Small library for building parsers",
+  "main": "index.js",
+  "scripts": {
+    "test": "c8 ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/makerC-LV/mini_parser_combinator.git"
+  },
+  "keywords": [
+    "parser",
+    "combinator",
+    "parsing",
+    "simple"
+  ],
+  "author": "makerC-LV",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/makerC-LV/mini_parser_combinator/issues"
+  },
+  "homepage": "https://github.com/makerC-LV/mini_parser_combinator#readme",
+  "devDependencies": {
+    "@types/node": "^18.7.18"
+  }
+}
