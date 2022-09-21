@@ -4,7 +4,7 @@
   "description": "Small library for building parsers",
   "main": "index.js",
   "scripts": {
-    "test": "c8 ava"
+    "test": "ava"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/makerC-LV/mini_parser_combinator#readme",
   "devDependencies": {
-    "@types/node": "^18.7.18"
+    "@types/node": "^18.7.18",
+    "ava": "^4.3.3"
   }
 }
