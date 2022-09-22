@@ -3,7 +3,7 @@ import { TC, LC, Token, TokenStream} from "./lexer.js"
 
 interface ParseNode {
     rule: string
-    children: ParseNode[]
+    children: Array<ParseNode|Token>
 }
 
 class Rule {
@@ -210,5 +210,5 @@ function notAnd(notRule: Rule, rule: Rule,  name: string|null =null) {
 }
 
 
-export {  $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
+export {  ParseNode, Rule, $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
     eol, eof, lineComment, blockComment, anyType }

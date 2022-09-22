@@ -1,18 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.anyType = exports.blockComment = exports.lineComment = exports.eof = exports.eol = exports.opt = exports.notAnd = exports.plus = exports.star = exports.alts = exports.seq = exports.re = exports.word = exports.ws = exports.$ = void 0;
-var lexer_js_1 = require("./lexer.js");
-var Rule = /** @class */ (function () {
-    function Rule(name, matchFn) {
+exports.anyType = exports.blockComment = exports.lineComment = exports.eof = exports.eol = exports.opt = exports.notAnd = exports.plus = exports.star = exports.alts = exports.seq = exports.re = exports.word = exports.ws = exports.$ = exports.Rule = void 0;
+const lexer_js_1 = require("./lexer.js");
+class Rule {
+    constructor(name, matchFn) {
         this.postProcess = null;
         this.name = name;
         this.matchFn = matchFn;
         this.trace = false;
     }
-    Rule.prototype.match = function (ts) {
+    match(ts) {
         ts.push();
         !this.trace || console.log("--", this.name, "match");
-        var r = this.matchFn(ts);
+        const r = this.matchFn(ts);
         if (r !== null) {
             ts.unstack();
             !this.trace || console.log("--", this.name, "success");
@@ -23,19 +23,19 @@ var Rule = /** @class */ (function () {
             !this.trace || console.log("--", this.name, "fail");
             return null;
         }
-    };
-    Rule.prototype.process = function (obj) {
+    }
+    process(obj) {
         if (this.postProcess) {
             return this.postProcess(obj);
         }
         return obj;
-    };
-    return Rule;
-}());
+    }
+}
+exports.Rule = Rule;
 // matches token based on token type
 function typeFn(name, type) {
-    return new Rule(name, function (ts) {
-        var tok = ts.next();
+    return new Rule(name, (ts) => {
+        const tok = ts.next();
         if (tok && (type === null || tok.type == type)) {
             return [tok];
         }
@@ -73,12 +73,11 @@ function blockComment() {
 }
 exports.blockComment = blockComment;
 // literal rule: matches token based on token string
-function $(str, name) {
-    if (name === void 0) { name = null; }
+function $(str, name = null) {
     if (!name)
         name = str;
-    return new Rule(str, function (ts) {
-        var tok = ts.next();
+    return new Rule(str, (ts) => {
+        const tok = ts.next();
         if (tok && tok.text == str) {
             return [tok];
         }
@@ -89,14 +88,13 @@ function $(str, name) {
 }
 exports.$ = $;
 // Note: must match complete text
-function re(reg, name) {
-    if (name === void 0) { name = null; }
+function re(reg, name = null) {
     if (!name)
         name = "re";
-    return new Rule(name, function (ts) {
-        var tok = ts.next();
+    return new Rule(name, (ts) => {
+        const tok = ts.next();
         if (tok) {
-            var m = tok.text.match(reg);
+            const m = tok.text.match(reg);
             if (m) {
                 return [{ match: m, children: [tok] }];
             }
@@ -105,16 +103,14 @@ function re(reg, name) {
     });
 }
 exports.re = re;
-function seq(rules, name) {
-    if (name === void 0) { name = null; }
+function seq(rules, name = null) {
     if (!name)
         name = "seq";
-    return new Rule(name, function (ts) {
+    return new Rule(name, (ts) => {
         ts.push();
-        var ra = [];
-        for (var _i = 0, rules_1 = rules; _i < rules_1.length; _i++) {
-            var rule = rules_1[_i];
-            var r = rule.match(ts);
+        const ra = [];
+        for (const rule of rules) {
+            const r = rule.match(ts);
             if (r !== null) {
                 ra.push(r);
             }
@@ -128,12 +124,11 @@ function seq(rules, name) {
     });
 }
 exports.seq = seq;
-function opt(rule, name) {
-    if (name === void 0) { name = null; }
+function opt(rule, name = null) {
     if (!name)
         name = "opt";
-    return new Rule(name, function (ts) {
-        var r = rule.match(ts);
+    return new Rule(name, (ts) => {
+        const r = rule.match(ts);
         if (r !== null) {
             return [r];
         }
@@ -143,15 +138,13 @@ function opt(rule, name) {
     });
 }
 exports.opt = opt;
-function alts(rules, name) {
-    if (name === void 0) { name = null; }
+function alts(rules, name = null) {
     if (!name)
         name = "alts";
-    return new Rule(name, function (ts) {
-        for (var _i = 0, rules_2 = rules; _i < rules_2.length; _i++) {
-            var rule = rules_2[_i];
+    return new Rule(name, (ts) => {
+        for (const rule of rules) {
             ts.push();
-            var r = rule.match(ts);
+            const r = rule.match(ts);
             if (r !== null) {
                 ts.unstack();
                 return [r];
@@ -164,29 +157,26 @@ function alts(rules, name) {
     });
 }
 exports.alts = alts;
-function star(rule, name) {
-    if (name === void 0) { name = null; }
+function star(rule, name = null) {
     if (!name)
         name = "star";
     return reps(rule, 0, name);
 }
 exports.star = star;
-function plus(rule, name) {
-    if (name === void 0) { name = null; }
+function plus(rule, name = null) {
     if (!name)
         name = "plus";
     return reps(rule, 1, name);
 }
 exports.plus = plus;
-function reps(rule, minReps, name) {
-    if (name === void 0) { name = null; }
+function reps(rule, minReps, name = null) {
     if (!name)
         name = "reps";
-    return new Rule(name, function (ts) {
+    return new Rule(name, (ts) => {
         ts.push();
-        var count = 0;
-        var ra = [];
-        var r = rule.match(ts);
+        let count = 0;
+        let ra = [];
+        let r = rule.match(ts);
         while (r !== null) {
             ra.push(r);
             count++;
@@ -204,19 +194,18 @@ function reps(rule, minReps, name) {
 }
 // fails without consuming input if notRule matches
 // succeeds if notRule doesn't match and rule matches
-function notAnd(notRule, rule, name) {
-    if (name === void 0) { name = null; }
+function notAnd(notRule, rule, name = null) {
     if (!name)
         name = "notAnd";
-    return new Rule(name, function (ts) {
+    return new Rule(name, (ts) => {
         ts.push();
-        var n = notRule.match(ts);
+        const n = notRule.match(ts);
         if (n !== null) { // notRule matched, so fail
             ts.unstack();
             return null;
         }
         ts.pop();
-        var r = rule.match(ts);
+        const r = rule.match(ts);
         if (r !== null) {
             return [r];
         }
