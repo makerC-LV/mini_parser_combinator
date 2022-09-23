@@ -11,17 +11,19 @@ describe("lexer tests", () => {
         expect(ca[2].type).toBe(TC.lineComment)
         expect(ca[2].loc).toEqual({ start: 2, end: 14, row: 0, col: 2 })
     })
+
+    it(' should test lex', () => {
+        let str = " a  /*"
+        let ps = {pos: 0, row:0, col: 0}
+        let r = lex(str)
+        let types = r.map(e => e.type)
+        expect(r.length).toBe(4)
+        expect(types).toEqual(["ws", "word", "ws", LC.bcs])
+    });
 })
 
 
-// test('lex', t => {
-// 	let str = " a  /*"
-//     let ps = {pos: 0, row:0, col: 0}
-//     let r = lex(str)
-//     let types = r.map(e => e.type)
-//     t.is(r.length, 4)
-//     t.deepEqual(types, ["ws", "word", "ws", LC.bcs])
-// });
+
 
 
 // test('nonsep', t => {
