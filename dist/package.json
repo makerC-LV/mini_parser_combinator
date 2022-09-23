@@ -18,8 +18,8 @@
   "files": [
     "src/"
   ],
-  "main": "pcomb.js",
-  "types": "pcomb.d.ts",
+  "main": "./src/pcomb.js",
+  "types": "./src/pcomb.d.ts",
   "devDependencies": {
     "@types/jest": "^29.0.3",
     "gulp": "^4.0.2",
