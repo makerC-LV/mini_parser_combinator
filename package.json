@@ -6,7 +6,8 @@
     "test": "jest",
     "build": "tsc --declaration",
     "dev": "tsc --watch",
-    "clean": "rm -rf build/* dist/*"
+    "clean": "rm -rf build/* dist/*",
+    "dist": "gulp"
   },
   "keywords": [
     "parsing",
@@ -18,8 +19,6 @@
   "files": [
     "src/"
   ],
-  "main": "pcomb.js",
-  "types": "pcomb.d.ts",
   "devDependencies": {
     "@types/jest": "^29.0.3",
     "gulp": "^4.0.2",

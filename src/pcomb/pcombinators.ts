@@ -4,6 +4,7 @@ import { TC, LC, Token, TokenStream} from "./lexer"
 interface ParseNode {
     rule: string
     children: Array<ParseNode|Token>
+    value?: any  // For client code to add specific data
 }
 
 class Rule {
