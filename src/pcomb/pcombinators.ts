@@ -1,5 +1,5 @@
 
-import { TC, LC, Token, TokenStream} from "./lexer.js"
+import { TC, LC, Token, TokenStream} from "./lexer"
 
 interface ParseNode {
     rule: string

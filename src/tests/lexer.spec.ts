@@ -19,6 +19,46 @@ describe("lexer tests", () => {
         let types = r.map(e => e.type)
         expect(r.length).toBe(4)
         expect(types).toEqual(["ws", "word", "ws", LC.bcs])
+    })
+
+    it('nonsep', () => {
+        let separators = [LC.bcs]
+        let str = " a  /*"
+        let ps = {pos: 0, row:0, col: 0}
+        let tok = nonsep(ps, separators, str)
+        expect(tok.type).toBe("ws")
+        expect(tok.loc.end).toBe( 1)
+        expect(tok.text).toBe(" ")
+    
+        tok = nonsep(ps, separators, str)
+        expect(tok.type).toBe("word")
+        expect(tok.loc.end).toBe(2)
+        expect(tok.text).toBe("a")
+    })
+
+    it('match sep at pos', () => {
+        let ps = {pos: 2, row:0, col: 2}
+        let str = "01/*"
+        let s = sep(ps, [LC.bcs], str)
+        expect(s).not.toBe(null)
+        if (s) {
+            expect(s.type).toBe(LC.bcs)
+            expect(ps).toMatchObject({pos:4, col:4})
+        }
+        
+        ps.pos = 0
+        s = sep(ps,[LC.bcs], str)
+        expect(s).toBe(null)
+    });
+    
+    it('matching alternates in string', () => {
+        let mr = match(["ab", "x"], 2, "bax")
+        expect(mr).toBe("x")
+    });
+    
+    it('matching in string', () => {
+        let mr = match("ab", 1, "bab")
+        expect(mr).toBe("ab")
     });
 })
 
@@ -26,46 +66,4 @@ describe("lexer tests", () => {
 
 
 
-// test('nonsep', t => {
-//     let separators = [LC.bcs]
-//     let str = " a  /*"
-//     let ps = {pos: 0, row:0, col: 0}
-// 	let tok = nonsep(ps, separators, str)
-//     t.is(tok.type, "ws")
-//     t.is(tok.loc.end, 1)
-//     t.is(tok.text, " ")
 
-//     tok = nonsep(ps, separators, str)
-//     t.is(tok.type, "word")
-//     t.is(tok.loc.end, 2)
-//     t.is(tok.text, "a")
-
-   
-
-// });
-
-
-// test('match sep at pos', t => {
-//     let ps = {pos: 2, row:0, col: 2}
-//     let str = "01/*"
-// 	let s = sep(ps, [LC.bcs], str)
-//     t.not(s, null)
-//     if (s) {
-//         t.is(s.type, LC.bcs)
-//         t.like(ps, {pos:4, col:4})
-//     }
-    
-//     ps.pos = 0
-//     s = sep(ps,[LC.bcs], str)
-//     t.is(s, null)
-// });
-
-// test('matching alternates in string', t => {
-// 	let mr = match(["ab", "x"], 2, "bax")
-//     t.is(mr, "x")
-// });
-
-// test('matching in string', t => {
-// 	let mr = match("ab", 1, "bab")
-//     t.is(mr, "ab")
-// });

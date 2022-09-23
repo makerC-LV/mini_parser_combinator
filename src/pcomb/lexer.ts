@@ -187,8 +187,9 @@ class TokenStream {
     }
     pop() {
         const pval = this.stack.pop()
-        if (pval)
+        if (pval !== undefined) {
             this.index = pval
+        }
 
     }
     
