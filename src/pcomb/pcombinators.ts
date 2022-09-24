@@ -1,35 +1,24 @@
 
-import { TC, LC, Token, TokenStream} from "./lexer"
+import { TC, LC, Location, Token, TokenStream} from "./lexer"
 
 interface ParseNode {
     rule: string
-    children: ParseNodeOrToken[]
-    value?: any  // For client code to add specific data
+    children: ParseNode[] | null
+    text: string | null  
+    loc: Location | null
+    value: any  // For client code to add specific data
 }
 
-interface ParseNodeOrToken {
-    node?: ParseNode
-    token? : Token
+function node(rule: string, children: ParseNode[]): ParseNode {
+    return {rule: rule, children: children, text: null, loc: null, value: null}
 }
 
-function isToken(o: ParseNodeOrToken): boolean {
-    return (!!o.token)
+function tokenNode(t: Token): ParseNode {
+    return {rule: t.type, children: null, text: t.text, loc: t.loc, value: null}
 }
 
-function isNode(o: ParseNodeOrToken): boolean {
-    return (!!o.node)
-}
-
-function node(rule: string, children: ParseNodeOrToken[], value: any = null): ParseNodeOrToken {
-    return {node: {rule: rule, children: children, value: value}}
-}
-
-function token(t: Token): ParseNodeOrToken {
-    return {token: t}
-}
-
-type PostProcFn = (o: ParseNodeOrToken) => ParseNodeOrToken;
-type MatchFn = (ts: TokenStream) => ParseNodeOrToken[] | null
+type PostProcFn = (o: ParseNode) => ParseNode;
+type MatchFn = (ts: TokenStream) => ParseNode | ParseNode[] | null
 
 class Rule {
     name: string
@@ -43,14 +32,15 @@ class Rule {
         this.trace = false
     }
 
-    match(ts: TokenStream): ParseNodeOrToken|null {
+    match(ts: TokenStream): ParseNode|null {
         ts.push()
         !this.trace || console.log("--", this.name, "match")
         const r = this.matchFn(ts)
         if (r !== null) {
             ts.unstack()
             !this.trace || console.log("--", this.name, "success")
-            return this.process(node( this.name, r))
+            const children = Array.isArray(r) ? r : [r]
+            return this.process(node(this.name, children))
         } else {
             ts.pop()
             !this.trace || console.log("--", this.name, "fail")
@@ -58,7 +48,7 @@ class Rule {
         }
     }
 
-    process(obj: ParseNodeOrToken|null): ParseNodeOrToken | null {
+    process(obj: ParseNode|null): ParseNode | null {
         if (this.postProcess !== null && obj != null) {
             return this.postProcess(obj)
         }
@@ -71,7 +61,7 @@ function typeFn(name: string, type: string|null): Rule  {
     return new Rule(name, (ts: TokenStream) => {
         const tok = ts.next()
         if (tok && (type === null || tok.type == type)) {
-            return [token(tok)]
+            return tokenNode(tok)
         } else {
             return null
         }
@@ -112,7 +102,7 @@ function $(str: string, name: string|null =null) {
     return new Rule(str, (ts: TokenStream) => {
         const tok = ts.next()
         if (tok && tok.text == str) {
-            return [token(tok)]
+            return tokenNode(tok)
         } else {
             return null
         }
@@ -126,7 +116,9 @@ function re(reg: RegExp | string, name: string|null =null) {
         if (tok) {
             const m = tok.text.match(reg)
             if (m) {
-                return [node(name as string, [token(tok)], m)]
+                const tnode = tokenNode(tok)
+                tnode.value = m
+                return tnode
                 // return [{match: m, children: [tok]}]
             }
         } 
@@ -237,5 +229,5 @@ function notAnd(notRule: Rule, rule: Rule,  name: string|null =null) {
 }
 
 
-export {  ParseNode, ParseNodeOrToken, node, isNode, isToken, Rule, PostProcFn, MatchFn,  $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
+export {  ParseNode, node, Rule, PostProcFn, MatchFn,  $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
     eol, eof, lineComment, blockComment, anyType }
