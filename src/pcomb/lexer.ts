@@ -20,6 +20,7 @@ interface Token {
 
 }
 
+
 // returns an array of tokens: each token is either a separator, a word (i.e. contiguous non-whitespace)
 // or contiguous whitespace
 function lex(str: string, separators = LSEP): Token[] {

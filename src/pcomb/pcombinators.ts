@@ -7,14 +7,16 @@ interface ParseNode {
     value?: any  // For client code to add specific data
 }
 
+type PostProcFn = (o: ParseNode|null) => ParseNode|null;
 class Rule {
     name: string
     matchFn: Function
     trace: boolean
-    postProcess: Function | null = null
+    postProcess: PostProcFn | null
     constructor(name: string, matchFn: Function) {
         this.name = name
         this.matchFn = matchFn
+        this.postProcess = null
         this.trace = false
     }
 
@@ -33,8 +35,8 @@ class Rule {
         }
     }
 
-    process(obj: ParseNode): ParseNode {
-        if (this.postProcess) {
+    process(obj: ParseNode): ParseNode| null {
+        if (this.postProcess !== null) {
             return this.postProcess(obj)
         }
         return obj
@@ -211,5 +213,5 @@ function notAnd(notRule: Rule, rule: Rule,  name: string|null =null) {
 }
 
 
-export {  ParseNode, Rule, $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
+export {  ParseNode, Rule, PostProcFn, $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
     eol, eof, lineComment, blockComment, anyType }
