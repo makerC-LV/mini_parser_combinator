@@ -9,22 +9,14 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.anyType = exports.blockComment = exports.lineComment = exports.eof = exports.eol = exports.opt = exports.notAnd = exports.plus = exports.star = exports.alts = exports.seq = exports.re = exports.word = exports.ws = exports.$ = exports.Rule = exports.isToken = exports.isNode = exports.node = void 0;
+    exports.anyType = exports.blockComment = exports.lineComment = exports.eof = exports.eol = exports.opt = exports.notAnd = exports.plus = exports.star = exports.alts = exports.seq = exports.re = exports.word = exports.ws = exports.$ = exports.Rule = exports.node = void 0;
     const lexer_1 = require("./lexer");
-    function isToken(o) {
-        return (!!o.token);
-    }
-    exports.isToken = isToken;
-    function isNode(o) {
-        return (!!o.node);
-    }
-    exports.isNode = isNode;
-    function node(rule, children, value = null) {
-        return { node: { rule: rule, children: children, value: value } };
+    function node(rule, children) {
+        return { rule: rule, children: children, text: null, loc: null, value: null };
     }
     exports.node = node;
-    function token(t) {
-        return { token: t };
+    function tokenNode(t) {
+        return { rule: t.type, children: [], text: t.text, loc: t.loc, value: null };
     }
     class Rule {
         constructor(name, matchFn) {
@@ -40,7 +32,8 @@
             if (r !== null) {
                 ts.unstack();
                 !this.trace || console.log("--", this.name, "success");
-                return this.process(node(this.name, r));
+                const children = Array.isArray(r) ? r : [r];
+                return this.process(node(this.name, children));
             }
             else {
                 ts.pop();
@@ -61,7 +54,7 @@
         return new Rule(name, (ts) => {
             const tok = ts.next();
             if (tok && (type === null || tok.type == type)) {
-                return [token(tok)];
+                return tokenNode(tok);
             }
             else {
                 return null;
@@ -103,7 +96,7 @@
         return new Rule(str, (ts) => {
             const tok = ts.next();
             if (tok && tok.text == str) {
-                return [token(tok)];
+                return tokenNode(tok);
             }
             else {
                 return null;
@@ -120,7 +113,9 @@
             if (tok) {
                 const m = tok.text.match(reg);
                 if (m) {
-                    return [node(name, [token(tok)], m)];
+                    const tnode = tokenNode(tok);
+                    tnode.value = m;
+                    return tnode;
                     // return [{match: m, children: [tok]}]
                 }
             }

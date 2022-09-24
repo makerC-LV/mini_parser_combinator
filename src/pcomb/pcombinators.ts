@@ -3,7 +3,7 @@ import { TC, LC, Location, Token, TokenStream} from "./lexer"
 
 interface ParseNode {
     rule: string
-    children: ParseNode[] | null
+    children: ParseNode[] 
     text: string | null  
     loc: Location | null
     value: any  // For client code to add specific data
@@ -14,7 +14,7 @@ function node(rule: string, children: ParseNode[]): ParseNode {
 }
 
 function tokenNode(t: Token): ParseNode {
-    return {rule: t.type, children: null, text: t.text, loc: t.loc, value: null}
+    return {rule: t.type, children: [], text: t.text, loc: t.loc, value: null}
 }
 
 type PostProcFn = (o: ParseNode) => ParseNode;
