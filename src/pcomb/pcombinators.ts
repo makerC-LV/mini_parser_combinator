@@ -3,31 +3,54 @@ import { TC, LC, Token, TokenStream} from "./lexer"
 
 interface ParseNode {
     rule: string
-    children: Array<ParseNode|Token>
+    children: ParseNodeOrToken[]
     value?: any  // For client code to add specific data
 }
 
-type PostProcFn = (o: ParseNode|null) => ParseNode|null;
+interface ParseNodeOrToken {
+    node?: ParseNode
+    token? : Token
+}
+
+function isToken(o: ParseNodeOrToken): boolean {
+    return (!!o.token)
+}
+
+function isNode(o: ParseNodeOrToken): boolean {
+    return (!!o.node)
+}
+
+function node(rule: string, children: ParseNodeOrToken[], value: any = null): ParseNodeOrToken {
+    return {node: {rule: rule, children: children, value: value}}
+}
+
+function token(t: Token): ParseNodeOrToken {
+    return {token: t}
+}
+
+type PostProcFn = (o: ParseNodeOrToken) => ParseNodeOrToken;
+type MatchFn = (ts: TokenStream) => ParseNodeOrToken[] | null
+
 class Rule {
     name: string
-    matchFn: Function
+    matchFn: MatchFn
     trace: boolean
     postProcess: PostProcFn | null
-    constructor(name: string, matchFn: Function) {
+    constructor(name: string, matchFn: MatchFn) {
         this.name = name
         this.matchFn = matchFn
         this.postProcess = null
         this.trace = false
     }
 
-    match(ts: TokenStream): ParseNode|null {
+    match(ts: TokenStream): ParseNodeOrToken|null {
         ts.push()
         !this.trace || console.log("--", this.name, "match")
         const r = this.matchFn(ts)
         if (r !== null) {
             ts.unstack()
             !this.trace || console.log("--", this.name, "success")
-            return this.process({rule: this.name, children: r})
+            return this.process(node( this.name, r))
         } else {
             ts.pop()
             !this.trace || console.log("--", this.name, "fail")
@@ -35,8 +58,8 @@ class Rule {
         }
     }
 
-    process(obj: ParseNode): ParseNode| null {
-        if (this.postProcess !== null) {
+    process(obj: ParseNodeOrToken|null): ParseNodeOrToken | null {
+        if (this.postProcess !== null && obj != null) {
             return this.postProcess(obj)
         }
         return obj
@@ -48,7 +71,7 @@ function typeFn(name: string, type: string|null): Rule  {
     return new Rule(name, (ts: TokenStream) => {
         const tok = ts.next()
         if (tok && (type === null || tok.type == type)) {
-            return [tok]
+            return [token(tok)]
         } else {
             return null
         }
@@ -89,7 +112,7 @@ function $(str: string, name: string|null =null) {
     return new Rule(str, (ts: TokenStream) => {
         const tok = ts.next()
         if (tok && tok.text == str) {
-            return [tok]
+            return [token(tok)]
         } else {
             return null
         }
@@ -97,13 +120,14 @@ function $(str: string, name: string|null =null) {
 }
 // Note: must match complete text
 function re(reg: RegExp | string, name: string|null =null) {
-    if (!name) name = "re"
+    if (name === null) name = "re"
     return new Rule(name, (ts: TokenStream) => {
         const tok = ts.next()
         if (tok) {
             const m = tok.text.match(reg)
             if (m) {
-                return [{match: m, children: [tok]}]
+                return [node(name as string, [token(tok)], m)]
+                // return [{match: m, children: [tok]}]
             }
         } 
         return null
@@ -213,5 +237,5 @@ function notAnd(notRule: Rule, rule: Rule,  name: string|null =null) {
 }
 
 
-export {  ParseNode, Rule, PostProcFn, $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
+export {  ParseNode, ParseNodeOrToken, node, isNode, isToken, Rule, PostProcFn, MatchFn,  $,  ws, word, re, seq, alts, star, plus, notAnd, opt, 
     eol, eof, lineComment, blockComment, anyType }

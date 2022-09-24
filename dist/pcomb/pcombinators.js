@@ -9,8 +9,23 @@
 })(function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.anyType = exports.blockComment = exports.lineComment = exports.eof = exports.eol = exports.opt = exports.notAnd = exports.plus = exports.star = exports.alts = exports.seq = exports.re = exports.word = exports.ws = exports.$ = exports.Rule = void 0;
+    exports.anyType = exports.blockComment = exports.lineComment = exports.eof = exports.eol = exports.opt = exports.notAnd = exports.plus = exports.star = exports.alts = exports.seq = exports.re = exports.word = exports.ws = exports.$ = exports.Rule = exports.isToken = exports.isNode = exports.node = void 0;
     const lexer_1 = require("./lexer");
+    function isToken(o) {
+        return (!!o.token);
+    }
+    exports.isToken = isToken;
+    function isNode(o) {
+        return (!!o.node);
+    }
+    exports.isNode = isNode;
+    function node(rule, children, value = null) {
+        return { node: { rule: rule, children: children, value: value } };
+    }
+    exports.node = node;
+    function token(t) {
+        return { token: t };
+    }
     class Rule {
         constructor(name, matchFn) {
             this.name = name;
@@ -25,7 +40,7 @@
             if (r !== null) {
                 ts.unstack();
                 !this.trace || console.log("--", this.name, "success");
-                return this.process({ rule: this.name, children: r });
+                return this.process(node(this.name, r));
             }
             else {
                 ts.pop();
@@ -34,7 +49,7 @@
             }
         }
         process(obj) {
-            if (this.postProcess !== null) {
+            if (this.postProcess !== null && obj != null) {
                 return this.postProcess(obj);
             }
             return obj;
@@ -46,7 +61,7 @@
         return new Rule(name, (ts) => {
             const tok = ts.next();
             if (tok && (type === null || tok.type == type)) {
-                return [tok];
+                return [token(tok)];
             }
             else {
                 return null;
@@ -88,7 +103,7 @@
         return new Rule(str, (ts) => {
             const tok = ts.next();
             if (tok && tok.text == str) {
-                return [tok];
+                return [token(tok)];
             }
             else {
                 return null;
@@ -98,14 +113,15 @@
     exports.$ = $;
     // Note: must match complete text
     function re(reg, name = null) {
-        if (!name)
+        if (name === null)
             name = "re";
         return new Rule(name, (ts) => {
             const tok = ts.next();
             if (tok) {
                 const m = tok.text.match(reg);
                 if (m) {
-                    return [{ match: m, children: [tok] }];
+                    return [node(name, [token(tok)], m)];
+                    // return [{match: m, children: [tok]}]
                 }
             }
             return null;
