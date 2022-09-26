@@ -129,7 +129,8 @@
         return new Rule(name, (ts) => {
             ts.push();
             const ra = [];
-            for (const rule of rules) {
+            for (const ruleOrGen of rules) {
+                const rule = (typeof ruleOrGen == "function") ? ruleOrGen() : ruleOrGen;
                 const r = rule.match(ts);
                 if (r !== null) {
                     ra.push(r);
@@ -162,7 +163,8 @@
         if (!name)
             name = "alts";
         return new Rule(name, (ts) => {
-            for (const rule of rules) {
+            for (const ruleOrGen of rules) {
+                const rule = (typeof ruleOrGen == "function") ? ruleOrGen() : ruleOrGen;
                 ts.push();
                 const r = rule.match(ts);
                 if (r !== null) {

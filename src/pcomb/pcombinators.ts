@@ -126,12 +126,15 @@ function re(reg: RegExp | string, name: string|null =null) {
     })
 }
 
-function seq(rules: Rule[],  name: string|null =null) {
+type TRGen = () => Rule  // for recursively defined rules
+
+function seq(rules: (Rule|TRGen)[],  name: string|null =null) {
     if (!name) name = "seq"
     return new Rule(name,  (ts: TokenStream) => {
         ts.push()
         const ra = []
-        for (const rule of rules) {
+        for (const ruleOrGen of rules) {
+            const rule = (typeof ruleOrGen == "function") ? ruleOrGen() :  ruleOrGen
             const r = rule.match (ts)
             if (r !== null) {
                 ra.push(r)
@@ -158,10 +161,11 @@ function opt(rule: Rule,  name: string|null =null) {
 }
 
 
-function alts(rules: Rule[],  name: string|null =null) {
+function alts(rules: (Rule| TRGen)[],  name: string|null =null) {
     if (!name) name = "alts"
     return new Rule(name,  (ts: TokenStream) => {
-        for (const rule of rules) {
+        for (const ruleOrGen of rules) {
+            const rule = (typeof ruleOrGen == "function") ? ruleOrGen() :  ruleOrGen
             ts.push()
             const r = rule.match(ts)
             if (r !== null) {

@@ -77,11 +77,18 @@ describe("test combinator rules", () => {
         
     })
 
-    it('all', () => {
+    it('seq', () => {
         let ts = new TokenStream(lex("a b"))
         let r = seq([$("a"), ws(), $("b")], "testAll").match(ts) // needs non-anonymous name
         testSuccess(r, 'testAll', 3)
     })
+
+    it.only("tests delayed seq defn", () => {
+        let ts = new TokenStream(lex("a b"))
+        let r = seq([$("a"), ws(), () => $("b")], "testAll").match(ts) // needs non-anonymous name
+        testSuccess(r, 'testAll', 3)
+    })
+
 
     it('opt', () => {
         let ts = new TokenStream(lex("bye"))
